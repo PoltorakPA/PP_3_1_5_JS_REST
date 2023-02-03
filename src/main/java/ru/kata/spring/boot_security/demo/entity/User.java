@@ -1,25 +1,41 @@
 package ru.kata.spring.boot_security.demo.entity;
 
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
+    @NotEmpty(message = "username не должно быть пустым")
+    @Size(min = 2, max = 100, message = "Длина от 2 до 100 символов")
+    @Column(name = "username")
+    private String username;
     @NotEmpty(message = "Имя не должно быть пусты")
     @Size(min = 2, max = 100, message = "Имя должно быть от 2 до 100 символов")
     @Column(name = "name")
@@ -28,23 +44,29 @@ public class User {
     @Size(min = 2, max = 100, message = "Фамилия должна быть от 2 до 100 символов")
     @Column(name = "lastname")
     private String lastname;
-    @Min(value = 1,message ="Возраст от 1 до 130 лет" )
-    @Max(value = 130,message ="Возраст от 1 до 130 лет" )
+    @Min(value = 1, message = "Возраст от 1 до 130 лет")
+    @Max(value = 130, message = "Возраст от 1 до 130 лет")
     @Column(name = "age")
-        private Integer age;
+    private Integer age;
     @Column(name = "email")
     private String email;
+    @NotEmpty
     @Column(name = "password")
     private String password;
-    @Column(name = "roles")
-    private String roles;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_id"))
+    private Set<Role> roles = new HashSet<>();
 
     public User() {
 
     }
 
-    public User(Integer id, String name, String lastname, Integer age, String email, String password, String roles) {
+    public User(Integer id, String username, String name, String lastname, Integer age, String email, String password, Set<Role> roles) {
         this.id = id;
+        this.username = username;
         this.name = name;
         this.lastname = lastname;
         this.age = age;
@@ -55,6 +77,23 @@ public class User {
 
     public Integer getId() {
         return id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(name, user.name) && Objects.equals(lastname, user.lastname) && Objects.equals(age, user.age) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(roles, user.roles);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, name, lastname, age, email, password, roles);
     }
 
     public void setId(Integer id) {
@@ -93,45 +132,63 @@ public class User {
         this.email = email;
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getRoles();
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public String getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(String roles) {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return id == user.id && age == user.age && Objects.equals(name, user.name) && Objects.equals(lastname, user.lastname) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(roles, user.roles);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, lastname, age, email, password, roles);
     }
 
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
+                ", username='" + username + '\'' +
                 ", name='" + name + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", age=" + age +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", roles='" + roles + '\'' +
+                ", roles=" + roles +
                 '}';
     }
 }

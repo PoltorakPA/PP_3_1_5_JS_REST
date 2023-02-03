@@ -16,7 +16,7 @@ public class UsersDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return user.getRoles();
     }
 
     @Override
@@ -26,7 +26,7 @@ public class UsersDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.user.getName();
+        return this.user.getUsername();
     }
 
     @Override
@@ -47,5 +47,9 @@ public class UsersDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public User getUser() {
+        return this.user;
     }
 }
