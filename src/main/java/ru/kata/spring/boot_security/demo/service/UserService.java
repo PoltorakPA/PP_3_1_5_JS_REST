@@ -1,7 +1,5 @@
 package ru.kata.spring.boot_security.demo.service;
 
-
-import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import ru.kata.spring.boot_security.demo.entity.User;
 
@@ -16,7 +14,7 @@ public interface UserService extends UserDetailsService {
 
     void saveUser(User user);
 
-    void updateUser(Integer id, User updatedUser);
+    void updateUser(String username, User updatedUser);
 
     void deleteUserById(Integer id);
 

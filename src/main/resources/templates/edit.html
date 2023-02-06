@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:form="http://www.w3.org/1999/html">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Edit user</title>
@@ -7,7 +7,7 @@
 <body>
 <h2>Edit user</h2>
 <br>
-<form th:method="PATCH" th:action="@{/{id}(id=${user.getId()})}" th:object="${user}">
+<form th:method="PATCH" th:action="@{/admin/{username}(username=${user.getUsername()})}" th:object="${user}">
     <label>change user details:</label>
     <br/>
     <label for="username">Enter username:</label>
@@ -34,7 +34,6 @@
 
     <br/>
     <label for="roles">Enter roles:</label>
-    <!--    <input type="text" th:field="*{roles}" id="roles"/>-->
     <br/>
     <p><input type="checkbox" name="roles" id="roles"
               th:each="role : ${roles}" th:value="${role.getId()}" th:text="${role.getName()}"

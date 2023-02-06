@@ -44,7 +44,6 @@ public class DBInit {
                 "Oleg", "Bochkov", 40,
                 "oleg@mail.ru", "123", userSet);
         user.setId(2);
-
         userService.saveUser(admin);
         userService.saveUser(user);
 

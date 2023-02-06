@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:form="http://www.w3.org/1999/html">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -28,12 +28,12 @@
         <td th:utext="${user.email}">Email</td>
         <td><p th:each="role : ${user.getRoles()}" th:text="${role.name}"></p></td>
         <td>
-            <form th:method="GET" th:action="@{/editUser/{id}(id=${user.getId()})}">
+            <form th:method="GET" th:action="@{/admin/editUser/{username}(username=${user.getUsername()})}">
                 <button>Edit user</button>
             </form>
         </td>
         <td>
-            <form th:method="DELETE" th:action="@{/deleteUser/{id}(id=${user.getId()})}">
+            <form th:method="DELETE" th:action="@{/admin/deleteUser/{id}(id=${user.getId()})}">
                 <input type="hidden" value="${user}">
                 <button type="submit">Delete User</button>
             </form>
@@ -42,7 +42,7 @@
 </table>
 <br/>
 <hr/>
-<form action="/new">
+<form action="/admin/new">
     <button>Create new user</button>
 </form>
 <br/>

@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,19 +17,32 @@ import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.List;
 
-
 @Controller
-
-public class AdminController {
+public class MainController {
     private final UserService userService;
     private final RoleService roleService;
 
     @Autowired
-    public AdminController(UserService userService, RoleService roleService) {
+    public MainController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
+    }
+
+    //страница входа в систему
+    @RequestMapping("/login")
+    public String homePage() {
+        return "login";
+    }
+
+    //страница пользователя
+    @GetMapping("/user")
+    public String userPage(Principal principal, Model model) {
+        UserDetails user = userService.getUserByUsername(principal.getName());
+        model.addAttribute("user", user);
+        return "user";
     }
 
     //отображение всех пользователей
@@ -40,30 +54,22 @@ public class AdminController {
     }
 
     //Отображение юзера по id
-    @GetMapping("/{id}")
+    @GetMapping("/admin/{id}")
     public String showUser(@PathVariable("id") Integer id, Model model) {
         model.addAttribute("user", userService.getUserById(id));
         return "user";
     }
 
 
-    //страница редактирования пользователя
-    @GetMapping("/editUser/{id}")
-    public String editUser(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("roles", roleService.getRoles());
-        model.addAttribute("user", userService.getUserById(id));
-        return "edit";
-    }
-
-    //    создание юзера
-    @GetMapping("/new")
+    //страница создание юзера
+    @GetMapping("/admin/new")
     public String addNewUser(Model model) {
         model.addAttribute("user", new User());
         model.addAttribute("roles", roleService.getRoles());
         return "new";
     }
 
-    @PostMapping("/new")
+    @PostMapping("/admin/save")
     public String createUser(@ModelAttribute("user") @Valid User user,
                              BindingResult bindingResult,
                              Model model) {
@@ -89,16 +95,24 @@ public class AdminController {
         }
     }
 
+    //страница редактирования пользователя
+    @GetMapping("/admin/editUser/{username}")
+    public String editUser(Model model, @PathVariable("username") String username) {
+        model.addAttribute("roles", roleService.getRoles());
+        model.addAttribute("user", userService.getUserByUsername(username));
+        return "edit";
+    }
+
     //страница обновления пользователя
-    @PatchMapping("/{id}")
+    @PatchMapping("/admin/{username}")
     public String updateUser(@ModelAttribute("user") @Valid User user,
-                             @PathVariable("id") Integer id) {
-        userService.updateUser(id, user);
+                             @PathVariable("username") String username) {
+        userService.updateUser(username, user);
         return "redirect:/admin";
     }
 
     //удаление пользователя
-    @DeleteMapping("/deleteUser/{id}")
+    @DeleteMapping("/admin/deleteUser/{id}")
     public String deleteUser(@PathVariable("id") Integer id) {
         userService.deleteUserById(id);
         return "redirect:/admin";

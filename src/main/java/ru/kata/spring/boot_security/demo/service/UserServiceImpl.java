@@ -1,15 +1,16 @@
 package ru.kata.spring.boot_security.demo.service;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
-import ru.kata.spring.boot_security.demo.security.UsersDetails;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +21,18 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
 
-
+    @Autowired
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
 
+    }
+
+    @Autowired
+    @Lazy
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -50,22 +58,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveUser(User user) {//+
-        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
     @Override
     @Transactional
-    public void updateUser(Integer id, User updatedUser) {//+
-        User userToUpdate = userRepository.getById(id);
+    public void updateUser(String username, User updatedUser) {//+
+        User userToUpdate = userRepository.findUserByUsername(username);
         userToUpdate.setUsername(updatedUser.getUsername());
         userToUpdate.setName(updatedUser.getName());
         userToUpdate.setLastname(updatedUser.getLastname());
-        userToUpdate.setPassword(updatedUser.getPassword());
+        userToUpdate.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         userToUpdate.setAge(updatedUser.getAge());
         userToUpdate.setEmail(updatedUser.getEmail());
         userToUpdate.setRoles(updatedUser.getRoles());
-        userRepository.save(updatedUser);
+        userRepository.save(userToUpdate);
     }
 
     @Override
@@ -77,12 +85,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = Optional.ofNullable(userRepository.findUserByUsername(username));
         if (user.isEmpty()) {
-            throw new UsernameNotFoundException("User not found");
+            throw new UsernameNotFoundException(String.format("User '%s' not found", username));
         }
-        return new UsersDetails(user.get());
+        return userRepository.findUserByUsername(username);
     }
 }
