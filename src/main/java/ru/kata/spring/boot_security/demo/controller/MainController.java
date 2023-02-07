@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.kata.spring.boot_security.demo.entity.User;
+import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserDetailsServiceImpl;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.validation.Valid;
@@ -24,11 +26,15 @@ import java.util.List;
 public class MainController {
     private final UserService userService;
     private final RoleService roleService;
+    private final UserRepository userRepository;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    public MainController(UserService userService, RoleService roleService) {
+    public MainController(UserService userService, RoleService roleService, UserRepository userRepository, UserDetailsServiceImpl userDetailsService) {
         this.userService = userService;
         this.roleService = roleService;
+        this.userRepository = userRepository;
+        this.userDetailsService = userDetailsService;
     }
 
     //страница входа в систему
@@ -40,7 +46,7 @@ public class MainController {
     //страница пользователя
     @GetMapping("/user")
     public String userPage(Principal principal, Model model) {
-        UserDetails user = userService.getUserByUsername(principal.getName());
+        UserDetails user = userDetailsService.loadUserByUsername(principal.getName());
         model.addAttribute("user", user);
         return "user";
     }
@@ -59,7 +65,6 @@ public class MainController {
         model.addAttribute("user", userService.getUserById(id));
         return "user";
     }
-
 
     //страница создание юзера
     @GetMapping("/admin/new")
@@ -84,7 +89,7 @@ public class MainController {
             model.addAttribute("passwordError", "Пароль не должен быть пустым");
             return "new";
         }
-        if (userService.getUserByUsername(user.getUsername()) != null) {
+        if (userRepository.findUserByUsername(user.getUsername()) != null) {
             model.addAttribute("user", user);
             model.addAttribute("roles", roleService.getRoles());
             model.addAttribute("usernameError", "Пользователь с таким именем существует!");
@@ -99,15 +104,17 @@ public class MainController {
     @GetMapping("/admin/editUser/{username}")
     public String editUser(Model model, @PathVariable("username") String username) {
         model.addAttribute("roles", roleService.getRoles());
-        model.addAttribute("user", userService.getUserByUsername(username));
+        model.addAttribute("user", userDetailsService.loadUserByUsername(username));
         return "edit";
     }
 
-    //страница обновления пользователя
     @PatchMapping("/admin/{username}")
-    public String updateUser(@ModelAttribute("user") @Valid User user,
-                             @PathVariable("username") String username) {
-        userService.updateUser(username, user);
+    public String updateUser(@ModelAttribute("user") @Valid User user
+            , @PathVariable("username") String username
+    ) {
+        userService.updateUser(
+                username,
+                user);
         return "redirect:/admin";
     }
 

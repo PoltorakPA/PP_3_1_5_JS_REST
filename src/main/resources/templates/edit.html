@@ -30,8 +30,8 @@
 
     <br/>
     <label for="password">Enter password:</label>
-    <input type="password" th:field="*{password}" id="password"/>
-
+    <input type="text" th:field="*{password}" id="password"/>
+    <div style="color: red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">password error</div>
     <br/>
     <label for="roles">Enter roles:</label>
     <br/>
