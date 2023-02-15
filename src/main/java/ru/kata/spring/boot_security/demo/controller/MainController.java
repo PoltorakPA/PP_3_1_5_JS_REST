@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 import ru.kata.spring.boot_security.demo.service.RoleService;
@@ -20,7 +23,10 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class MainController {
@@ -30,7 +36,8 @@ public class MainController {
     private final UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    public MainController(UserService userService, RoleService roleService, UserRepository userRepository, UserDetailsServiceImpl userDetailsService) {
+    public MainController(UserService userService, RoleService roleService, UserRepository userRepository,
+                          UserDetailsServiceImpl userDetailsService) {
         this.userService = userService;
         this.roleService = roleService;
         this.userRepository = userRepository;
@@ -45,54 +52,49 @@ public class MainController {
 
     //страница пользователя
     @GetMapping("/user")
-    public String userPage(Principal principal, Model model) {
-        UserDetails user = userDetailsService.loadUserByUsername(principal.getName());
-        model.addAttribute("user", user);
+    public String userPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        model.addAttribute("user", userDetailsService.findByEmail(userDetails.getUsername()));
         return "user";
     }
 
-    //отображение всех пользователей
+    //отображение всех пользователей и страница admin
     @GetMapping("/admin")
-    public String showAllUsers(Model model) {
-        List<User> userList = userService.getAllUsers();
-        model.addAttribute("allUsers", userList);
+    public String showAllUsers(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        model.addAttribute("allUsers", userService.getAllUsers());
+        model.addAttribute("userAuthorized", userDetailsService.findByEmail(userDetails.getUsername()));
+        model.addAttribute("roles", roleService.getAllRoles());
         return "admin";
-    }
-
-    //Отображение юзера по id
-    @GetMapping("/admin/{id}")
-    public String showUser(@PathVariable("id") Integer id, Model model) {
-        model.addAttribute("user", userService.getUserById(id));
-        return "user";
     }
 
     //страница создание юзера
     @GetMapping("/admin/new")
-    public String addNewUser(Model model) {
+    public String addNewUser(@AuthenticationPrincipal UserDetails userDetails, Principal principal, Model model) {
         model.addAttribute("user", new User());
-        model.addAttribute("roles", roleService.getRoles());
+        model.addAttribute("roles", roleService.getAllRoles());
         return "new";
     }
 
+    //сохранение пользователя
     @PostMapping("/admin/save")
-    public String createUser(@ModelAttribute("user") @Valid User user,
-                             BindingResult bindingResult,
-                             Model model) {
+    public String createUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("user", user);
-            model.addAttribute("roles", roleService.getRoles());
+            model.addAttribute("roles", roleService.getAllRoles());
             return "new";
         }
         if (user.getPassword().isEmpty()) {
-            model.addAttribute("user", user);
-            model.addAttribute("roles", roleService.getRoles());
+            model.addAttribute("roles", roleService.getAllRoles());
             model.addAttribute("passwordError", "Пароль не должен быть пустым");
             return "new";
         }
         if (userRepository.findUserByUsername(user.getUsername()) != null) {
-            model.addAttribute("user", user);
-            model.addAttribute("roles", roleService.getRoles());
+            model.addAttribute("roles", roleService.getAllRoles());
             model.addAttribute("usernameError", "Пользователь с таким именем существует!");
+            return "new";
+        }
+        if (userRepository.findUserByEmail(user.getEmail()) != null) {
+            model.addAttribute("roles", roleService.getAllRoles());
+            model.addAttribute("emailError", "Пользователь с такой почтой существует!");
             return "new";
         } else {
             userService.saveUser(user);
@@ -100,21 +102,15 @@ public class MainController {
         }
     }
 
-    //страница редактирования пользователя
-    @GetMapping("/admin/editUser/{username}")
-    public String editUser(Model model, @PathVariable("username") String username) {
-        model.addAttribute("roles", roleService.getRoles());
-        model.addAttribute("user", userDetailsService.loadUserByUsername(username));
-        return "edit";
-    }
-
-    @PatchMapping("/admin/{username}")
-    public String updateUser(@ModelAttribute("user") @Valid User user
-            , @PathVariable("username") String username
+    //редактирование пользователя
+    @PatchMapping("/admin/editUser/{id}")
+    public String updateUser(@ModelAttribute("user") User user,
+                             BindingResult bindingResult
     ) {
-        userService.updateUser(
-                username,
-                user);
+        if (bindingResult.hasErrors()) {
+            return "redirect:/admin/editUser/{id}";
+        }
+        userService.updateUser(user);
         return "redirect:/admin";
     }
 

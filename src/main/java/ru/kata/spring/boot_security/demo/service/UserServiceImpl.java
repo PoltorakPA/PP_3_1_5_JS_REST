@@ -12,24 +12,19 @@ import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     @Lazy
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, UserService userService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-
-    }
-
-    @Autowired
-    @Lazy
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -40,12 +35,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(Integer id) {//+
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            return user.get();
-        } else {
-            throw new UsernameNotFoundException("User not found");
+        User user = null;
+        Optional<User> optional = userRepository.findById(id);
+        if (optional.isPresent()) {
+            user = optional.get();
         }
+        return user;
     }
 
     @Override
@@ -57,10 +52,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateUser(String username, User user) {
-        user.setId(userRepository.findUserByUsername(username).getId());
-        if (!userRepository.findUserByUsername(username).getPassword().equals(user.getPassword()))
+    public void updateUser(User user) {
+        User oldUser = getUserById(user.getId());
+        if (user.getPassword().equals("") || user.getPassword() == null) {
+            user.setPassword(oldUser.getPassword());
+        } else {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         userRepository.save(user);
     }
 
@@ -70,5 +68,10 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findById(id).isPresent()) {
             userRepository.deleteById(id);
         } else throw new UsernameNotFoundException("User not found!");
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findUserByEmail(email);
     }
 }

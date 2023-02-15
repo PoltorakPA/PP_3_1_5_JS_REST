@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.entity;
 
 
+import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -14,14 +15,16 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+
 
 @Entity
 @Table(name = "users")
@@ -48,8 +51,10 @@ public class User implements UserDetails {
     @Column(name = "age")
     private Integer age;
     @Column(name = "email")
+    @NotEmpty(message = "почта не должна быть пустой")
+    @Email(message = "Некорректный адрес")
     private String email;
-    @NotEmpty
+    @NotEmpty(message = "Пароль не должен быть пустым")
     @Column(name = "password")
     private String password;
 
@@ -57,13 +62,13 @@ public class User implements UserDetails {
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id"))
-    private Set<Role> roles = new HashSet<>();
+    private List<Role> roles = new ArrayList<>();
 
     public User() {
 
     }
 
-    public User(Integer id, String username, String name, String lastname, Integer age, String email, String password, Set<Role> roles) {
+    public User(Integer id, String username, String name, String lastname, Integer age, String email, String password, List<Role> roles) {
         this.id = id;
         this.username = username;
         this.name = name;
@@ -169,25 +174,29 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public Set<Role> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
 
+    //    @Override
+//    public String toString() {
+//        return "User{" +
+//                "id=" + id +
+//                ", username='" + username + '\'' +
+//                ", name='" + name + '\'' +
+//                ", lastname='" + lastname + '\'' +
+//                ", age=" + age +
+//                ", email='" + email + '\'' +
+//                ", password='" + password + '\'' +
+//                ", roles=" + roles +
+//                '}';
+//    }
     @Override
     public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", name='" + name + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", age=" + age +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", roles=" + roles +
-                '}';
+        return roles.toString();
     }
 }
