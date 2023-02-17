@@ -46,8 +46,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveUser(User user) {//+
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        if (userRepository.findUserByEmail(user.getEmail()) == null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+        } else try {
+            throw new Exception("Duplicate email");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

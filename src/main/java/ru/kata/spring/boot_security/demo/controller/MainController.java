@@ -36,28 +36,24 @@ public class MainController {
     private final UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    public MainController(UserService userService, RoleService roleService, UserRepository userRepository,
-                          UserDetailsServiceImpl userDetailsService) {
+    public MainController(UserService userService, RoleService roleService, UserRepository userRepository, UserDetailsServiceImpl userDetailsService) {
         this.userService = userService;
         this.roleService = roleService;
         this.userRepository = userRepository;
         this.userDetailsService = userDetailsService;
     }
 
-    //страница входа в систему
     @RequestMapping("/login")
     public String homePage() {
         return "login";
     }
 
-    //страница пользователя
     @GetMapping("/user")
     public String userPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         model.addAttribute("user", userDetailsService.findByEmail(userDetails.getUsername()));
         return "user";
     }
 
-    //отображение всех пользователей и страница admin
     @GetMapping("/admin")
     public String showAllUsers(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         model.addAttribute("allUsers", userService.getAllUsers());
@@ -66,47 +62,25 @@ public class MainController {
         return "admin";
     }
 
-    //страница создание юзера
     @GetMapping("/admin/new")
-    public String addNewUser(@AuthenticationPrincipal UserDetails userDetails, Principal principal, Model model) {
+    public String addNewUser(Model model) {
         model.addAttribute("user", new User());
         model.addAttribute("roles", roleService.getAllRoles());
         return "new";
     }
 
-    //сохранение пользователя
     @PostMapping("/admin/save")
-    public String createUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult, Model model) {
+    public String createUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("user", user);
-            model.addAttribute("roles", roleService.getAllRoles());
             return "new";
         }
-        if (user.getPassword().isEmpty()) {
-            model.addAttribute("roles", roleService.getAllRoles());
-            model.addAttribute("passwordError", "Пароль не должен быть пустым");
-            return "new";
-        }
-        if (userRepository.findUserByUsername(user.getUsername()) != null) {
-            model.addAttribute("roles", roleService.getAllRoles());
-            model.addAttribute("usernameError", "Пользователь с таким именем существует!");
-            return "new";
-        }
-        if (userRepository.findUserByEmail(user.getEmail()) != null) {
-            model.addAttribute("roles", roleService.getAllRoles());
-            model.addAttribute("emailError", "Пользователь с такой почтой существует!");
-            return "new";
-        } else {
-            userService.saveUser(user);
-            return "redirect:/admin";
-        }
+        userService.saveUser(user);
+        return "redirect:/admin";
+//        }
     }
 
-    //редактирование пользователя
     @PatchMapping("/admin/editUser/{id}")
-    public String updateUser(@ModelAttribute("user") User user,
-                             BindingResult bindingResult
-    ) {
+    public String updateUser(@ModelAttribute("user") User user, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "redirect:/admin/editUser/{id}";
         }
@@ -114,7 +88,6 @@ public class MainController {
         return "redirect:/admin";
     }
 
-    //удаление пользователя
     @DeleteMapping("/admin/deleteUser/{id}")
     public String deleteUser(@PathVariable("id") Integer id) {
         userService.deleteUserById(id);

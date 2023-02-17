@@ -1,7 +1,6 @@
 package ru.kata.spring.boot_security.demo.entity;
 
 
-import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -59,9 +58,7 @@ public class User implements UserDetails {
     private String password;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "roles_id"))
+    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "roles_id"))
     private List<Role> roles = new ArrayList<>();
 
     public User() {
@@ -182,19 +179,6 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    //    @Override
-//    public String toString() {
-//        return "User{" +
-//                "id=" + id +
-//                ", username='" + username + '\'' +
-//                ", name='" + name + '\'' +
-//                ", lastname='" + lastname + '\'' +
-//                ", age=" + age +
-//                ", email='" + email + '\'' +
-//                ", password='" + password + '\'' +
-//                ", roles=" + roles +
-//                '}';
-//    }
     @Override
     public String toString() {
         return roles.toString();

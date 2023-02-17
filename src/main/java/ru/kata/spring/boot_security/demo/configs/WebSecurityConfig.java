@@ -18,13 +18,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final SuccessUserHandler successUserHandler;
     private final UserDetailsServiceImpl userDetailsService;
+
     @Bean
     public PasswordEncoder getPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Autowired
-    public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, SuccessUserHandler successUserHandler ) {
+    public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, SuccessUserHandler successUserHandler) {
         this.userDetailsService = userDetailsService;
         this.successUserHandler = successUserHandler;
 
@@ -32,18 +33,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/admin/**").access("hasRole('ADMIN')")
+        http.authorizeRequests().antMatchers("/admin/**").access("hasRole('ADMIN')")
                 .antMatchers("/", "/login", "error").permitAll()
                 .antMatchers("/user/**").access("hasAnyRole('ADMIN', 'USER')")
-                .anyRequest().access("hasRole('ADMIN')")
-                .and()
-                .formLogin().loginPage("/login").successHandler(successUserHandler)
-                .permitAll()
-                .and()
-                .logout().logoutUrl("/logout")
-                .logoutSuccessUrl("/");
+                .anyRequest().access("hasRole('ADMIN')").and().formLogin().loginPage("/login")
+                .successHandler(successUserHandler).permitAll()
+                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/");
     }
 
     @Override

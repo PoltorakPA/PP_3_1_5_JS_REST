@@ -10,6 +10,7 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class RoleServiceImpl implements RoleService {
+
     private final RoleRepository roleRepository;
 
     public RoleServiceImpl(RoleRepository roleRepository) {
@@ -27,9 +28,9 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.save(role);
     }
 
-    @Override
-    public Role findByName(String name) {
-        return roleRepository.findByName(name);
-    }
+//    @Override
+//    public Role findByName(String name) {
+//        return roleRepository.findByName(name);
+//    }
 
 }
