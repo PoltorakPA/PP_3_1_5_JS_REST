@@ -59,7 +59,7 @@ public class User implements UserDetails, Serializable {
     @Column(name = "password")
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "roles_id"))
     private List<Role> roles = new ArrayList<>();
 
@@ -69,6 +69,16 @@ public class User implements UserDetails, Serializable {
 
     public User(Integer id, String username, String name, String lastname, Integer age, String email, String password, List<Role> roles) {
         this.id = id;
+        this.username = username;
+        this.name = name;
+        this.lastname = lastname;
+        this.age = age;
+        this.email = email;
+        this.password = password;
+        this.roles = roles;
+    }
+
+    public User(String username, String name, String lastname, Integer age, String email, String password, List<Role> roles) {
         this.username = username;
         this.name = name;
         this.lastname = lastname;

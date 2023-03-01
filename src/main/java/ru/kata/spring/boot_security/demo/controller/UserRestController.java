@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.UserDetailsServiceImpl;
-import ru.kata.spring.boot_security.demo.service.UserService;
 
 @RestController
 @RequestMapping("/api/user")

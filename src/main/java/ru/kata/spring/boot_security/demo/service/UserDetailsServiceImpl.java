@@ -13,6 +13,7 @@ import ru.kata.spring.boot_security.demo.entity.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,11 +28,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = findByEmail(username);
-        if (user == null) {
-            throw new UsernameNotFoundException(String.format("User '%s' not found", username));
-        }
+    public UserDetails loadUserByUsername(String username) {
+        User user = Optional.ofNullable(userService.findByEmail(username)).orElseThrow(()->new UsernameNotFoundException(String.format("User '%s' not found", username)));
         return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), rolesToAuthority(user.getRoles()));
     }
 
