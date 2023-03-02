@@ -22,8 +22,10 @@ import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 
 @Entity
@@ -60,25 +62,16 @@ public class User implements UserDetails, Serializable {
     private String password;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "roles_id"))
-    private List<Role> roles = new ArrayList<>();
+    @JoinTable(name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_id"))
+    private Set<Role> roles = new HashSet<>();
 
     public User() {
-
     }
 
-    public User(Integer id, String username, String name, String lastname, Integer age, String email, String password, List<Role> roles) {
-        this.id = id;
-        this.username = username;
-        this.name = name;
-        this.lastname = lastname;
-        this.age = age;
-        this.email = email;
-        this.password = password;
-        this.roles = roles;
-    }
-
-    public User(String username, String name, String lastname, Integer age, String email, String password, List<Role> roles) {
+    public User(String username, String name, String lastname, Integer age,
+                String email, String password, Set<Role> roles) {
         this.username = username;
         this.name = name;
         this.lastname = lastname;
@@ -101,7 +94,10 @@ public class User implements UserDetails, Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(name, user.name) && Objects.equals(lastname, user.lastname) && Objects.equals(age, user.age) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(roles, user.roles);
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username)
+                && Objects.equals(name, user.name) && Objects.equals(lastname, user.lastname)
+                && Objects.equals(age, user.age) && Objects.equals(email, user.email)
+                && Objects.equals(password, user.password) && Objects.equals(roles, user.roles);
     }
 
     @Override
@@ -156,7 +152,7 @@ public class User implements UserDetails, Serializable {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override
@@ -183,11 +179,11 @@ public class User implements UserDetails, Serializable {
         this.password = password;
     }
 
-    public List<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<Role> roles) {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
 

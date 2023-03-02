@@ -15,14 +15,14 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final UserService userService;
+
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     @Lazy
-    public UserServiceImpl(UserRepository userRepository, UserService userService,@Lazy PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.userService = userService;
+
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -37,15 +37,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional//работает
     public void saveUser(User user) {//+
-        if (userRepository.findUserByEmail(user.getEmail()) == null) {
+        if (userRepository.findUserByEmail(user.getEmail()).isPresent()) {
+            try {
+                throw new Exception("Duplicate email");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
-        } else try {
-            throw new Exception("Duplicate email");
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -65,10 +67,5 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUserById(Integer id) {//+
         userRepository.deleteById(id);
-    }
-
-    @Override
-    public User findByEmail(String email) {
-        return userRepository.findUserByEmail(email);
     }
 }
